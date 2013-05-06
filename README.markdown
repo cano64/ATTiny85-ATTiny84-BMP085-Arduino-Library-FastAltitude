@@ -11,9 +11,9 @@ and requires TinyWireM library
 
 It is done by approximation using Taylor Series, centered at the sea level. 
 As you go higher (or lower) the error offset is higher.
-	At 1000m the offset is about 3m
-	At 2000m the offset is about 22m
-	At 3000m the offset is about 80m
+At 1000m the offset is about 3m
+At 2000m the offset is about 22m
+At 3000m the offset is about 80m
 
 Uncalibrated (set for standard sea level pressure) function for calculating altitude
 without using floats is (will be) available as well saving another 1100 bytes of sketch size
