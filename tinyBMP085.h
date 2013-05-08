@@ -17,11 +17,18 @@
  * 
  * Modified Feb 2012 by John De Cristofaro / johngineer for use on
  * ATTiny micros running the TinyWire library (TinyWireM).
+ * -------------------------------------------------------
+ * modified by Michal Canecky/Cano 2013-05-05
+ * -calculation of altitude without using pow() and math library
+ * -calculation of altitude using only integers 
+ * 	(fixed for standard sea level pressure)
  * 
  ****************************************************/
 
 #include <stdint.h>
 #include <TinyWireM.h>
+
+#define ALTITUDE_EXTRA_PRECISSION 1
 
 #define BMP085_DEBUG 0
 

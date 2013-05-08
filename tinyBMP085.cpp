@@ -23,13 +23,14 @@
  * -------------------------------------------------------
  * modified by Michal Canecky/Cano 2013-05-05
  * -calculation of altitude without using pow() and math library
- * -super fast calculation of altitude using only integers 
+ * -calculation of altitude using only integers 
  * 	(fixed for standard sea level pressure)
  * 
  ****************************************************/
 
 #include "tinyBMP085.h"
 #include <util/delay.h>
+
 
 
 tinyBMP085::tinyBMP085() {
@@ -162,84 +163,53 @@ int32_t tinyBMP085::readAltitudemm(int32_t sealevelPressure) {
     //TODO get rid of floats as well
 
     int32_t pressure = readPressure();
-    // convert this [altitude = 44330 * (1.0 - pow(pressure / sealevelPressure, 1.0 / 5.255))] into Taylor Series
-    // http://en.wikipedia.org/wiki/Taylor_series
-
-    //Taylor Series at x = pressure = 101325, (a = sealevelPressure)
-    //(44330.-397430. (1/a)^0.190295)-0.746399 (1/a)^0.190295 (x-101325)+2.9823x10^-6 (1/a)^0.190295 (x-101325)^2-1.7755x10^-11 (1/a)^0.190295 (x-101325)^3+1.23085x10^-16 (1/a)^0.190295 (x-101325)^4-9.25572x10^-22 (1/a)^0.190295 (x-101325)^5+O((x-101325)^6)
-
-    //substitute b = (1/a) ^ 0.19029495718363463368220742150333
-    //we have Taylor series for that too at x = 101325
-    //0.111542-2.09483x10^-7 (x-101325)+1.23043x10^-12 (x-101325)^2-8.86586x10^-18 (x-101325)^3+6.97871x10^-23 (x-101325)^4-5.77209x10^-28 (x-101325)^5+O((x-101325)^6)
 
     int32_t ax1 = sealevelPressure - 101325;
     int32_t ax2 = ax1 * ax1;
-    //    int32_t ax3 = ax2 * ax1;
-
-    //	Serial.println(ax1);
-    //	Serial.println(ax2);
-    //	Serial.println(ax3);
 
     float b = 0.111542;
-    //	Serial.println(b, 10);
     b += -2.09483E-7 * (float)ax1;
-    //	Serial.println(b, 10);
     b += 1.23043E-12 * (float)ax2;
-    //	Serial.println(b, 10);
-    //b += -8.86586E-18 * (float)ax3;
-
-    //b = 0.1113241531; //value for standard pressure
-
+#if ALTITUDE_EXTRA_PRECISSION == 1
+    int32_t ax3 = ax2 * ax1;
+    b += -8.86586E-18 * (float)ax3;
+#endif
 
     int32_t px1 = pressure - 101325;
     int32_t px2 = px1 * px1;
-    //    int32_t px3 = px2 * px1;
 
-
-    int32_t altitude = 1000.0 * (44330 - 397430 * b  - 0.746399 * b * px1  + 2.9823E-6 * b * px2 /*- 1.7755E-11 * b * px3*/);
-
-    //Taylor series for sealevelPressure = 101325
-    //-0.0832546 (x-101325)+3.32651x10^-7 (x-101325)^2-1.98043x10^-12 (x-101325)^3+1.37291x10^-17 (x-101325)^4-1.0324x10^-22 (x-101325)^5+8.16767x10^-28 (x-101325)^6+O((x-101325)^7)
-    //  altitude = -0.0832546 * px1 + 3.32651E-7 * px2 - 1.98043E-12 *px3; //estimate for sealevelPressure = 101325
-
+	int32_t altitude = 4.433E7 - 3.92585E8 * b - 786.388 * b * px1 + 0.00335128 * b * px2;
+#if ALTITUDE_EXTRA_PRECISSION == 1
+    int32_t px3 = px2 * px1;
+	altitude += -2.12801E-8 * b * px3;
+#endif
+	
     return altitude;
-
-    /*
-
-     	Comparison of accuracy using pow() vs Taylor series
-     	There is no difference using 2 of 3 terms, so we will use just first 2
-     	Taylor series is centered at the sea level, because I live at the sea level :P
-     	
-     	pow(), Taylor (#of terms for b, altitude) pressure
-     
-     	-214.51 meters -218.497m (1,1) p=105000
-     	-214.51 meters -214.548m (2,2) p=105000
-     	197.16 meters 196.959m (1,1) p=10000
-     	197.16 meters 197.012m (2,2) p=100000
-     	1073.19 meters 1027.873m (1,1) p=90000
-     	1073.19 meters 1069.935m (2,2) p=90000
-     	2031.94 meters 2009.258m (2,2) p=80000
-     	3093.21 meters 3014.982m (2,2) p=70000
-     	3093.21 meters 3014.983m (3,3) p=70000
-     	4285.28 meters 4087.107m (3,3) p=60000
-     	4285.28 meters 4087.107m (2,2) p=60000
-     	7258.86 meters 5004.616m (2,2) p=40000
-     	11839.87 meters 6187.728m (2,2) p=20000
-     	44330.00 meters 9062.383m (2,2) p=0
-     
-     */
-
 
 }
 
 // return altitude in milimetes based on standard pressure at sea level
 // this is the function you will normally use for altitude readings unless you 
 // want to check weather report sea level presssure for your area every time you want to use the device
-// uncalibrated altitude reading may be off 100 meters, depending if it's sunny or raining
+// uncalibrated altitude reading may be offset 100 meters, depending if it's sunny or raining
 
 int32_t tinyBMP085::readAltitudeSTDmm(void) {
-    //TODO fast calculation only using ints
-    return readAltitudemm(); //placeholder
+    
+    int32_t pressure = readPressure();
+	int32_t moo = (int32_t)95000 - pressure;
+	int32_t moo2 = moo * moo;
+	int32_t altitude = 540418; //0th term
+	altitude += (((int32_t)22455 * moo) >> 8); //1st term
+	altitude += (moo2 >> 12) + (moo2 >> 13) + (moo2 >> 17); //2nd term
+
+#if ALTITUDE_EXTRA_PRECISSION == 1
+	int32_t moo64 = moo >> 6;
+	int32_t moo364 = moo64 * moo64 * moo64;
+	altitude += (moo >> 12) + (moo >> 17) + (moo >> 18); //1st term, extra precission
+	altitude += (moo364 >> 11) + (moo364 >> 13) + (moo364 >> 17) + (moo364 >> 18) + (moo364 >> 21); //3rd term for extra precission
+#endif
+
+    return altitude;
 }
 
 uint8_t tinyBMP085::read8(uint8_t a) {
