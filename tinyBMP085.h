@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <TinyWireM.h>
 
-#define ALTITUDE_EXTRA_PRECISSION 1
+#define ALTITUDE_EXTRA_PRECISSION 0
 
 #define BMP085_DEBUG 0
 
@@ -69,6 +69,7 @@ public:
     float readAltitude(int32_t sealevelPressure = 101325); // std atmosphere by default
     int32_t readAltitudemm(int32_t sealevelPressure = 101325); // std atmosphere by default
     int32_t readAltitudeSTDmm(); // std atmosphere, fast approximation using only ints
+    int16_t readAltitudeSTDdm(); // std atmosphere, fast approx, 16 bits, (-3.2km to 3.2km)
 
     uint16_t readRawTemperature(void);
     uint32_t readRawPressure(void);

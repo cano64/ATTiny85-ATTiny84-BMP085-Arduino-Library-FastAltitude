@@ -1,7 +1,8 @@
 This is an ATTiny library for BMP085 Barometric Pressure and Temperature sensor.
 Written by Michal Canecky/Cano based on library by John De Cristofaro / johngineer
 based on library by Adafruit. It's designed for ATTiny microcontrollers like ATTiny85 and ATTiny84
-and requires TinyWireM library for communication with the sensor
+and requires TinyWireM library for communication with the sensor. Check also my optimized fullsize 
+[Arduino BMP085 library](https://github.com/cano64/Arduino-BMP085-Library-no-pow) for ATMega328
 
 	This library is calculating altitudes
 	without using pow() function and math library

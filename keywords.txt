@@ -1,0 +1,8 @@
+tinyBMP085	KEYWORD1
+readPressure	KEYWORD2
+readTemperature10C	KEYWORD2
+readAltitude	KEYWORD2
+readAltitudemm	KEYWORD2
+readAltitudeSTDmm	KEYWORD2
+readAltitudeSTDdm	KEYWORD2
+
