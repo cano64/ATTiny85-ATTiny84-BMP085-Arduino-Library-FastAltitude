@@ -241,6 +241,15 @@ int16_t tinyBMP085::readAltitudeSTDdm(void) {
     return altitude;
 }
 
+uint16_t tinyBMP085::readAltitudeSTDdm2(void) {
+    int32_t pressure = readPressure();
+    int32_t moo = (int32_t)95000 - pressure;
+    uint16_t altitude = 5404;
+    altitude += ((28742 * moo) >> 15);
+    altitude += ((moo * moo) >> 18);
+
+    return altitude;
+}
 
 uint8_t tinyBMP085::read8(uint8_t a) {
     uint8_t ret;

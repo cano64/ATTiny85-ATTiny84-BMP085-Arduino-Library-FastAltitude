@@ -12,7 +12,7 @@ void loop() {
     int temp = bmp.readTemperature10C();
     int alt = bmp.readAltitude();
     int altMM = bmp.readAltitudemm();
-    int altSTDmm = bmp.readAltitudeSTDmm();
+    int altSTDdm = bmp.readAltitudeSTDdm();
     
     delay(500);
 }
